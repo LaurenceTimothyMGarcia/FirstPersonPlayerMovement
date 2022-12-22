@@ -16,8 +16,9 @@ namespace PlayerInput
 
         //Input controller
         private InputController input;
-        private InputAction move;
-        private InputAction look;
+        private InputAction moveAction;
+        private InputAction lookAction;
+        private InputAction jumpAction;
 
         //Basic Movement
         private Vector2 movement;
@@ -44,29 +45,51 @@ namespace PlayerInput
                 Destroy(this.gameObject);
             }
 
+
             //Initialize Input
             input = new InputController();
+            moveAction = input.Player.Move;
+            lookAction = input.Player.Look;
+            jumpAction = input.Player.Jump;
+
+            moveAction.Enable();
+            lookAction.Enable();
+            jumpAction.Enable();
 
             //Sets player input values with listeners
-            input.Player.Move.performed += ctx => {
+
+            //MOVEMENT
+            moveAction.performed += ctx => {
+
                 //Reads the current stick/wasd value
                 movement = ctx.ReadValue<Vector2>();
+
                 //Sets boolean if stick is moved on either axis
                 movementPressed = movement.x != 0 || movement.y != 0;
             };
+
             //Stops the movement when released
-            input.Player.Move.canceled += ctx => movement = Vector2.zero;
+            moveAction.canceled += ctx => movement = Vector2.zero;
 
 
+            //ROTATION AND LOOKING AROUND WITH CAMERA
             //Deals with player looking around
-            input.Player.Look.performed += ctx => {
+            lookAction.performed += ctx => {
+
                 //Reads current stick/mouse value
                 looking = ctx.ReadValue<Vector2>();
+
                 //Sets boolean if stick/mouse is looking around
                 lookingPressed = looking.x != 0 || looking.y != 0;
             };
+
             //Stops the look when released
-            input.Player.Look.canceled += ctx => looking = Vector2.zero;
+            lookAction.canceled += ctx => looking = Vector2.zero;
+
+
+            //JUMPS
+            jumpAction.performed += setJump;
+            jumpAction.canceled += setJump;
         }
 
 
@@ -143,19 +166,37 @@ namespace PlayerInput
         }
 
 
+        public void setJump(InputAction.CallbackContext ctx)
+        {
+            //Sets jump based on current state of jump
+            if (jump)
+            {
+                jump = false;
+            }
+            else
+            {
+                jump = true;
+            }
+        }
+        //Get Jump
+        public bool jumpPressed()
+        {
+            return jump;
+        }
+
+
         //When script is enabled and disabled
         private void OnEnable()
         {
-            move = input.Player.Move;
-            look = input.Player.Look;
-
-            move.Enable();
-            look.Enable();
+            moveAction.Enable();
+            lookAction.Enable();
+            jumpAction.Enable();
         }
         void OnDisable()
         {
-            move.Disable();
-            look.Disable();
+            moveAction.Disable();
+            lookAction.Disable();
+            jumpAction.Disable();
         }
     }
 }
