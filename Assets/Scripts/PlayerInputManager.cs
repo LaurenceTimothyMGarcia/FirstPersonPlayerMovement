@@ -15,7 +15,9 @@ namespace PlayerInput
         public static PlayerInputManager Instance = null;
 
         //Input controller
-        [SerializeField] private InputController input;
+        private InputController input;
+        private InputAction move;
+        private InputAction look;
 
         //Basic Movement
         private Vector2 movement;
@@ -52,6 +54,8 @@ namespace PlayerInput
                 //Sets boolean if stick is moved on either axis
                 movementPressed = movement.x != 0 || movement.y != 0;
             };
+            //Stops the movement when released
+            input.Player.Move.canceled += ctx => movement = Vector2.zero;
 
 
             //Deals with player looking around
@@ -61,13 +65,40 @@ namespace PlayerInput
                 //Sets boolean if stick/mouse is looking around
                 lookingPressed = looking.x != 0 || looking.y != 0;
             };
+            //Stops the look when released
+            input.Player.Look.canceled += ctx => looking = Vector2.zero;
         }
 
 
         //Returns the current value of the player movement
         public Vector2 getMovement()
         {
-            return movement.normalized;
+            return movement;
+        }
+        //Movement but just 1 -1 or 0
+        public Vector2 getMovementRaw()
+        {
+            //Raw of X
+            if (movement.x < 0)
+            {
+                movement.x = -1;
+            }
+            else if (movement.x > 0)
+            {
+                movement.x = 1;
+            }
+
+            //Raw of Y
+            if (movement.y < 0)
+            {
+                movement.y = -1;
+            }
+            else if (movement.x > 0)
+            {
+                movement.y = 1;
+            }
+
+            return movement;
         }
 
         //Returns value if the movement stick was moved or not
@@ -84,29 +115,24 @@ namespace PlayerInput
         //Looking but just 1 -1 or 0
         public Vector2 getLookingRaw()
         {
-            if (lookingPressed)
+            //Raw of X
+            if (looking.x < 0)
             {
-                if (looking.x < 0)
-                {
-                    looking.x = -1;
-                }
-                else if (looking.x > 0)
-                {
-                    looking.x = 1;
-                }
-
-                if (looking.y < 0)
-                {
-                    looking.y = -1;
-                }
-                else if (looking.x > 0)
-                {
-                    looking.y = 1;
-                }
+                looking.x = -1;
             }
-            else
+            else if (looking.x > 0)
             {
-                looking = new Vector2(0,0);
+                looking.x = 1;
+            }
+
+            //Raw of Y
+            if (looking.y < 0)
+            {
+                looking.y = -1;
+            }
+            else if (looking.x > 0)
+            {
+                looking.y = 1;
             }
 
             return looking;
@@ -120,11 +146,16 @@ namespace PlayerInput
         //When script is enabled and disabled
         private void OnEnable()
         {
-            input.Player.Enable();
+            move = input.Player.Move;
+            look = input.Player.Look;
+
+            move.Enable();
+            look.Enable();
         }
         void OnDisable()
         {
-            input.Player.Disable();
+            move.Disable();
+            look.Disable();
         }
     }
 }

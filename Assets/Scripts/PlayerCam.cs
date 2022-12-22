@@ -35,14 +35,14 @@ namespace PlayerInput
                 return;
             }
 
-            Debug.Log("Looking Player:" + PlayerInputManager.Instance.getLooking());
-            Debug.Log("Looking Player Raw:" + PlayerInputManager.Instance.getLookingRaw());
+            // Debug.Log("Looking Player:" + PlayerInputManager.Instance.getLooking());
+            // Debug.Log("Looking Player Raw:" + PlayerInputManager.Instance.getLookingRaw());
 
-            float controllerX = PlayerInputManager.Instance.getLookingRaw().x * Time.deltaTime * sensX;
-            float controllerY = PlayerInputManager.Instance.getLookingRaw().y * Time.deltaTime * sensY;
+            float controllerX = PlayerInputManager.Instance.getLooking().x * Time.deltaTime * sensX;
+            float controllerY = PlayerInputManager.Instance.getLooking().y * Time.deltaTime * sensY;
             
-            Debug.Log("Controller X:" + controllerX);
-            Debug.Log("Controller Y:" + controllerY);
+            // Debug.Log("Controller X:" + controllerX);
+            // Debug.Log("Controller Y:" + controllerY);
 
             yRotation += controllerX;
             xRotation -= controllerY;

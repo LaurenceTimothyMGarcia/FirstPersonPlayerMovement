@@ -35,13 +35,23 @@ namespace PlayerInput
         private void Update()
         {
             Input();
+            
+        }
+
+        private void FixedUpdate()
+        {
             MovePlayer();
         }
 
         private void Input()
         {
+            
+            //Issue is that it keeps its current state
             horizontalInput = PlayerInputManager.Instance.getMovement().x;
             verticalInput = PlayerInputManager.Instance.getMovement().y;
+
+            Debug.Log("HorizontalInput: " + horizontalInput);
+            Debug.Log("VerticalInput: " + verticalInput);
         }
 
         private void MovePlayer()
