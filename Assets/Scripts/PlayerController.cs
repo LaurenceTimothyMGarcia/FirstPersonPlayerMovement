@@ -11,70 +11,45 @@ namespace PlayerInput
 {
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private InputController input;
 
-        private Vector2 currentMovement;
-        private bool movementPressed;
-        private bool runPressed;
+        [Header("Movement")]
+        [SerializeField] private float moveSpeed;
 
-        //
-        void Awake()
-        {
-            input = new InputController();
+        [SerializeField] private Transform orientation;
 
-            //Sets player input values with listeners
-            input.Player.Move.performed += ctx => {
-                //Reads the current stick/wasd value
-                currentMovement = ctx.ReadValue<Vector2>();
-                //Sets boolean if stick is moved on either axis
-                movementPressed = currentMovement.x != 0 || currentMovement.y != 0;
-            };
-        }
+
+        private float horizontalInput;
+        private float verticalInput;
+
+        private Vector3 moveDirection;
+
+        private Rigidbody rb;
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
-            
+            rb = GetComponent<Rigidbody>();
+            rb.freezeRotation = true;
         }
 
-        // Update is called once per frame
-        void FixedUpdate()
+        private void Update()
         {
-            
+            Input();
+            MovePlayer();
         }
 
-        void Rotation()
+        private void Input()
         {
-
+            horizontalInput = PlayerInputManager.Instance.getMovement().x;
+            verticalInput = PlayerInputManager.Instance.getMovement().y;
         }
 
-        void Movement()
+        private void MovePlayer()
         {
-            //Set player to walk if true
-            if (movementPressed)
-            {
+            //Calculate movement direction 
+            moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
-            }
-
-            //Stops player from walking
-            if (!movementPressed)
-            {
-
-            }
-        }
-
-
-        //When script is enabled and disabled
-        void OnEnable()
-        {
-            // Enables character controls action map
-            input.Player.Enable();
-        }
-
-        void OnDisable()
-        {
-            // Disables character controls action map
-            input.Player.Disable();
+            rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
     }
 }
