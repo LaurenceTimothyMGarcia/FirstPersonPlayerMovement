@@ -43,6 +43,13 @@ namespace PlayerInput
         [SerializeField] private LayerMask whatIsGround;
         private bool grounded;
 
+
+        [Header("Slope Handling")]
+        [SerializeField] private float maxSlopeAngle;
+        private RaycastHit slopeHit;
+        private bool exitSlope;
+
+
         [SerializeField] private Transform orientation;
 
 
@@ -177,6 +184,16 @@ namespace PlayerInput
             //Calculate movement direction 
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
+            if (OnSlope() && !exitSlope)
+            {
+                rb.AddForce(GetSlopeMoveDirection() * moveSpeed * 20f, ForceMode.Force);
+
+                if (rb.velocity.y > 0)
+                {
+                    rb.AddForce(Vector3.down * 80f, ForceMode.Force);
+                }
+            }
+
             //On ground
             if (grounded)
             {
@@ -187,19 +204,34 @@ namespace PlayerInput
             {
                 rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
             }
+
+            rb.useGravity = !OnSlope();
         }
 
         //Limits speed of player
         private void SpeedControl()
         {
-            Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-            //limit velocity if needd
-            //If faster than movement speed, calculate max velcoty then apply it.
-            if (flatVel.magnitude > moveSpeed)
+            //Limiting speed on slope
+            if (OnSlope() && !exitSlope)
             {
-                Vector3 limitedVel = flatVel.normalized * moveSpeed;
-                rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+                if (rb.velocity.magnitude > moveSpeed)
+                {
+                    rb.velocity = rb.velocity.normalized * moveSpeed;
+                }
+            }
+
+            //Limit speed in ground or air
+            else
+            {
+                Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+                //limit velocity if needd
+                //If faster than movement speed, calculate max velcoty then apply it.
+                if (flatVel.magnitude > moveSpeed)
+                {
+                    Vector3 limitedVel = flatVel.normalized * moveSpeed;
+                    rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+                }
             }
         }
 
@@ -207,6 +239,8 @@ namespace PlayerInput
         //Jump function
         private void Jump()
         {
+            exitSlope = true;
+
             //Reset y velocity
             rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
@@ -216,6 +250,26 @@ namespace PlayerInput
         private void ResetJump()
         {
             readyToJump = true;
+            exitSlope = false;
+        }
+
+        //Slope function
+        private bool OnSlope()
+        {
+            if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f))
+            {
+                //Returns how steep the slope is
+                float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+                return angle < maxSlopeAngle && angle != 0;
+            }
+
+            return false;
+        }
+
+        //Have move direction change to the slope
+        private Vector3 GetSlopeMoveDirection()
+        {
+            return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
         }
     }
 }
