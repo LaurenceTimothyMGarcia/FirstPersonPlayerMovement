@@ -17,12 +17,18 @@ namespace PlayerInput
         //Input controller
         private InputController input;
         private InputAction moveAction;
+        private InputAction sprintAction;
+        private InputAction crouchAction;
         private InputAction lookAction;
         private InputAction jumpAction;
 
         //Basic Movement
         private Vector2 movement;
         private bool movementPressed;
+        private bool sprint;
+        [SerializeField] private bool sprintHold;
+        private bool crouch;
+        [SerializeField] private bool crouchHold;
 
         //Looking
         private Vector2 looking;
@@ -49,10 +55,15 @@ namespace PlayerInput
             //Initialize Input
             input = new InputController();
             moveAction = input.Player.Move;
+            sprintAction = input.Player.Sprint;
+            crouchAction = input.Player.Crouch;
             lookAction = input.Player.Look;
             jumpAction = input.Player.Jump;
 
+            //May not need this since its in OnEnable() method as well
             moveAction.Enable();
+            sprintAction.Enable();
+            crouchAction.Enable();
             lookAction.Enable();
             jumpAction.Enable();
 
@@ -71,6 +82,28 @@ namespace PlayerInput
             //Stops the movement when released
             moveAction.canceled += ctx => movement = Vector2.zero;
 
+
+            //Checks for Sprinting button
+            //Current version of sprint is holding it down to run
+            sprintAction.performed += setSprint;
+            //Set a toggle bool for sprint
+            //True - Hold Down to run
+            //False - Toggle to run
+            if (sprintHold)
+            {
+                sprintAction.canceled += setSprint;
+            }
+
+
+            //Crouch Button
+            crouchAction.performed += setCrouch;
+            //Set a toggle bool for crouch
+            //True - Hold Down to crouch
+            //False - Toggle to crouch
+            if (crouchHold)
+            {
+                crouchAction.canceled += setCrouch;
+            }
 
             //ROTATION AND LOOKING AROUND WITH CAMERA
             //Deals with player looking around
@@ -92,7 +125,7 @@ namespace PlayerInput
             jumpAction.canceled += setJump;
         }
 
-
+        //MOVEMENT SETTER AND GETTER
         //Returns the current value of the player movement
         public Vector2 getMovement()
         {
@@ -130,6 +163,42 @@ namespace PlayerInput
             return movementPressed;
         }
 
+        //SPRINT SETTER AND GETTER
+        public void setSprint(InputAction.CallbackContext ctx)
+        {
+            if (sprint)
+            {
+                sprint = false;
+            }
+            else
+            {
+                sprint = true;
+            }
+        }
+        public bool sprintPressed()
+        {
+            return sprint;
+        }
+
+        //Sets Crouch boolean to true or false
+        public void setCrouch(InputAction.CallbackContext ctx)
+        {
+            if (crouch)
+            {
+                crouch = false;
+            }
+            else
+            {
+                crouch = true;
+            }
+        }
+        public bool crouchPressed()
+        {
+            return crouch;
+        }
+
+
+        //LOOKING SETTER AND GETTER
         //Returns looking value from player
         public Vector2 getLooking()
         {
@@ -166,6 +235,7 @@ namespace PlayerInput
         }
 
 
+        //JUMP SETTER AND GETTER
         public void setJump(InputAction.CallbackContext ctx)
         {
             //Sets jump based on current state of jump
@@ -189,12 +259,16 @@ namespace PlayerInput
         private void OnEnable()
         {
             moveAction.Enable();
+            sprintAction.Enable();
+            crouchAction.Enable();
             lookAction.Enable();
             jumpAction.Enable();
         }
         void OnDisable()
         {
             moveAction.Disable();
+            sprintAction.Disable();
+            crouchAction.Disable();
             lookAction.Disable();
             jumpAction.Disable();
         }
